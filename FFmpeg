@@ -1,0 +1,1 @@
+FFmpeg är ett bra bibliotek som har mycket LPGL-saker. Men det är värt att läsa igenom http://ffmpeg.org/legal.html för lite saker man bör tänka på när man använder LGPL kommersiellt. T.ex att patentinnehavare brukar börja jaga fatt på folk för att dra in licenspengar.
