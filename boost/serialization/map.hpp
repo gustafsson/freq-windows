@@ -17,9 +17,10 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
-#include <map>
 
 #include <boost/config.hpp>
+
+#include <map>
 
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/collections_save_imp.hpp>

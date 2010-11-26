@@ -24,6 +24,7 @@
 
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_polymorphic.hpp>
+#include <boost/type_traits/remove_const.hpp>
 
 #include <boost/serialization/static_warning.hpp>
 #include <boost/serialization/singleton.hpp>
@@ -31,6 +32,7 @@
 #include <boost/serialization/factory.hpp>
 #include <boost/serialization/throw_exception.hpp>
 
+#include <boost/serialization/config.hpp>
 // hijack serialization access
 #include <boost/serialization/access.hpp>
 
@@ -128,15 +130,15 @@ public:
         va_start(ap, count);
         switch(count){
         case 0:
-            return factory<T, 0>(ap);
+            return factory<BOOST_DEDUCED_TYPENAME boost::remove_const<T>::type, 0>(ap);
         case 1:
-            return factory<T, 1>(ap);
+            return factory<BOOST_DEDUCED_TYPENAME boost::remove_const<T>::type, 1>(ap);
         case 2:
-            return factory<T, 2>(ap);
+            return factory<BOOST_DEDUCED_TYPENAME boost::remove_const<T>::type, 2>(ap);
         case 3:
-            return factory<T, 3>(ap);
+            return factory<BOOST_DEDUCED_TYPENAME boost::remove_const<T>::type, 3>(ap);
         case 4:
-            return factory<T, 4>(ap);
+            return factory<BOOST_DEDUCED_TYPENAME boost::remove_const<T>::type, 4>(ap);
         default:
             assert(false); // too many arguments
             // throw exception here?
