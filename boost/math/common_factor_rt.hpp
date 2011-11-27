@@ -19,7 +19,6 @@
 
 #include <boost/config.hpp>  // for BOOST_NESTED_TEMPLATE, etc.
 #include <boost/limits.hpp>  // for std::numeric_limits
-#include <climits>           // for CHAR_MIN
 #include <boost/detail/workaround.hpp>
 
 
@@ -79,8 +78,8 @@ namespace detail
     RingType
     gcd_euclidean
     (
-        RingType a,
-        RingType b
+        RingType  a,
+        RingType  b
     )
     {
         // Avoid repeated construction
@@ -117,7 +116,7 @@ namespace detail
         IntegerType const  zero = static_cast<IntegerType>( 0 );
         IntegerType const  result = gcd_euclidean( a, b );
 
-        return ( result < zero ) ? static_cast<IntegerType>(-result) : result;
+        return ( result < zero ) ? -result : result;
     }
 
     // Greatest common divisor for unsigned binary integers
@@ -213,7 +212,7 @@ namespace detail
         IntegerType const  zero = static_cast<IntegerType>( 0 );
         IntegerType const  result = lcm_euclidean( a, b );
 
-        return ( result < zero ) ? static_cast<IntegerType>(-result) : result;
+        return ( result < zero ) ? -result : result;
     }
 
     // Function objects to find the best way of computing GCD or LCM
@@ -313,10 +312,6 @@ namespace detail
     BOOST_PRIVATE_GCD_UF( unsigned __int64 );
 #endif
 
-#if CHAR_MIN == 0
-    BOOST_PRIVATE_GCD_UF( char ); // char is unsigned
-#endif
-
 #undef BOOST_PRIVATE_GCD_UF
 
 #define BOOST_PRIVATE_GCD_SF( St, Ut )                            \
@@ -331,9 +326,7 @@ namespace detail
     BOOST_PRIVATE_GCD_SF( int, unsigned );
     BOOST_PRIVATE_GCD_SF( long, unsigned long );
 
-#if CHAR_MIN < 0
-    BOOST_PRIVATE_GCD_SF( char, unsigned char ); // char is signed
-#endif
+    BOOST_PRIVATE_GCD_SF( char, unsigned char ); // should work even if unsigned
 
 #ifdef BOOST_HAS_LONG_LONG
     BOOST_PRIVATE_GCD_SF( boost::long_long_type, boost::ulong_long_type );

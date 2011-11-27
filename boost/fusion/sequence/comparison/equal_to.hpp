@@ -13,12 +13,6 @@
 #include <boost/fusion/sequence/intrinsic/size.hpp>
 #include <boost/fusion/sequence/comparison/detail/equal_to.hpp>
 #include <boost/fusion/sequence/comparison/detail/enable_comparison.hpp>
-#include <boost/config.hpp>
-
-#if defined (BOOST_MSVC)
-#  pragma warning(push)
-#  pragma warning (disable: 4100) // unreferenced formal parameter
-#endif
 
 namespace boost { namespace fusion
 {
@@ -48,9 +42,5 @@ namespace boost { namespace fusion
     }
     using operators::operator==;
 }}
-
-#if defined (BOOST_MSVC)
-#  pragma warning(pop)
-#endif
 
 #endif

@@ -77,7 +77,7 @@ namespace detail { namespace parallel
 
   inline bool is_digit(char c)
   {
-      return (bool)std::isdigit(c);
+      return std::isdigit(c);
   }
 
   inline std::vector<int> 

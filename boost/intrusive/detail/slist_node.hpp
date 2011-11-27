@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 //
 // (C) Copyright Olaf Krzikalla 2004-2006.
-// (C) Copyright Ion Gaztanaga  2006-2009
+// (C) Copyright Ion Gaztanaga  2006-2008
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -55,12 +55,8 @@ template<class Container, bool IsConst>
 class slist_iterator
    :  public std::iterator
          < std::forward_iterator_tag
-         , typename Container::value_type
-         , typename std::iterator_traits<typename Container::value_type*>::difference_type
          , typename detail::add_const_if_c
-                     <typename Container::value_type, IsConst>::type *
-         , typename detail::add_const_if_c
-                     <typename Container::value_type, IsConst>::type &
+            <typename Container::value_type, IsConst>::type
          >
 {
    protected:
@@ -74,11 +70,11 @@ class slist_iterator
       detail::store_cont_ptr_on_it<Container>::value;
 
    public:
-   typedef typename Container::value_type    value_type;
-   typedef  typename detail::add_const_if_c
-                     <typename Container::value_type, IsConst>::type *pointer;
    typedef typename detail::add_const_if_c
-                     <typename Container::value_type, IsConst>::type &reference;
+      <typename Container::value_type, IsConst>
+      ::type                                       value_type;
+   typedef value_type & reference;
+   typedef value_type * pointer;
 
    slist_iterator()
       : members_ (node_ptr(0), 0)
@@ -118,7 +114,7 @@ class slist_iterator
    bool operator!= (const slist_iterator& i) const
    {  return !operator== (i); }
 
-   reference operator*() const
+   value_type& operator*() const
    {  return *operator->();   }
 
    pointer operator->() const

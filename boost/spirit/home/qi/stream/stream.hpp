@@ -1,19 +1,18 @@
-/*=============================================================================
-    Copyright (c) 2001-2010 Hartmut Kaiser
+//  Copyright (c) 2001-2009 Hartmut Kaiser
+//
+//  Distributed under the Boost Software License, Version 1.0. (See accompanying
+//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-    Distributed under the Boost Software License, Version 1.0. (See accompanying
-    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-==============================================================================*/
 #if !defined(BOOST_SPIRIT_STREAM_MAY_05_2007_1228PM)
 #define BOOST_SPIRIT_STREAM_MAY_05_2007_1228PM
 
-#if defined(_MSC_VER)
-#pragma once
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#pragma once      // MS compatible compilers support #pragma once
 #endif
 
 #include <boost/spirit/home/qi/detail/string_parse.hpp>
 #include <boost/spirit/home/qi/stream/detail/match_manip.hpp>
-#include <boost/spirit/home/qi/stream/detail/iterator_source.hpp>
+#include <boost/spirit/home/qi/stream/detail/iterator_istream.hpp>
 #include <boost/spirit/home/support/detail/hold_any.hpp>
 
 #include <iosfwd>
@@ -22,80 +21,53 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit
 {
-    ///////////////////////////////////////////////////////////////////////////
-    // Enablers
-    ///////////////////////////////////////////////////////////////////////////
-    template <>
-    struct use_terminal<qi::domain, tag::stream> // enables stream
-      : mpl::true_ {};
-
-    template <>
-    struct use_terminal<qi::domain, tag::wstream> // enables wstream
-      : mpl::true_ {};
+    // overload the streaming operators for the unused_type
+    template <typename Char, typename Traits>
+    inline std::basic_istream<Char, Traits>&
+    operator>> (std::basic_istream<Char, Traits>& is, unused_type&)
+    {
+        return is;
+    }
 }}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace boost { namespace spirit { namespace qi
 {
-    using spirit::stream;
-    using spirit::wstream;
-
-    template <typename Char = char, typename T = spirit::hold_any>
-    struct stream_parser
-      : primitive_parser<stream_parser<Char, T> >
+    template <typename Char, typename T = spirit::hold_any>
+    struct any_stream
     {
-        template <typename Context, typename Iterator>
+        template <typename Component, typename Context, typename Iterator>
         struct attribute
         {
             typedef T type;
         };
 
-        template <typename Iterator, typename Context
+        template <
+            typename Component
+          , typename Iterator, typename Context
           , typename Skipper, typename Attribute>
-        bool parse(Iterator& first, Iterator const& last
+        static bool parse(
+            Component const& /*component*/
+          , Iterator& first, Iterator const& last
           , Context& /*context*/, Skipper const& skipper
-          , Attribute& attr) const
+          , Attribute& attr)
         {
             typedef qi::detail::iterator_source<Iterator> source_device;
             typedef boost::iostreams::stream<source_device> instream;
 
-            qi::skip_over(first, last, skipper);
-            instream in(first, last);
+            qi::skip(first, last, skipper);
+            instream in (first, last);
             in >> attr;                       // use existing operator>>()
             return in.good() || in.eof();
         }
 
-        template <typename Context>
-        info what(Context& /*context*/) const
+        template <typename Component, typename Context>
+        static std::string what(Component const& component, Context const& ctx)
         {
-            return info("stream");
+            return "any-stream";
         }
     };
 
-    template <typename T, typename Char = char>
-    struct typed_stream
-      : proto::terminal<stream_parser<Char, T> >::type
-    {
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Parser generators: make_xxx function (objects)
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename Char>
-    struct make_stream
-    {
-        typedef stream_parser<Char> result_type;
-        result_type operator()(unused_type, unused_type) const
-        {
-            return result_type();
-        }
-    };
-
-    template <typename Modifiers>
-    struct make_primitive<tag::stream, Modifiers> : make_stream<char> {};
-
-    template <typename Modifiers>
-    struct make_primitive<tag::wstream, Modifiers> : make_stream<wchar_t> {};
 }}}
 
 #endif

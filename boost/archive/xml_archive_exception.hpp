@@ -20,10 +20,6 @@
 #include <cassert>
 
 #include <boost/archive/archive_exception.hpp>
-#include <boost/preprocessor/empty.hpp>
-#include <boost/archive/detail/decl.hpp>
-
-#include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 namespace boost {
 namespace archive {
@@ -31,7 +27,7 @@ namespace archive {
 //////////////////////////////////////////////////////////////////////
 // exceptions thrown by xml archives
 //
-class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) xml_archive_exception : 
+class xml_archive_exception : 
     public virtual archive_exception
 {
 public:
@@ -40,16 +36,31 @@ public:
         xml_archive_tag_mismatch,
         xml_archive_tag_name_error
     } exception_code;
-    xml_archive_exception(
-        exception_code c, 
-        const char * e1 = NULL,
-        const char * e2 = NULL
-    );
+    exception_code code;
+    xml_archive_exception(exception_code)
+    {}
+    virtual const char *what( ) const throw( )
+    {
+        const char *msg;
+        switch(code){
+        case xml_archive_parsing_error:
+            msg = "unrecognized XML syntax";
+            break;
+        case xml_archive_tag_mismatch:
+            msg = "XML start/end tag mismatch";
+            break;
+        case xml_archive_tag_name_error:
+            msg = "Invalid XML tag name";
+            break;
+        default:
+            msg = archive_exception::what();
+            break;
+        }
+        return msg;
+    }
 };
 
 }// namespace archive
 }// namespace boost
-
-#include <boost/archive/detail/abi_suffix.hpp> // pops abi_suffix.hpp pragmas
 
 #endif //BOOST_XML_ARCHIVE_ARCHIVE_EXCEPTION_HPP

@@ -35,10 +35,8 @@ struct scale
     typedef Exponent exponent;
     typedef double value_type;
     static value_type value() { return(detail::static_rational_power<Exponent>(static_cast<double>(base))); }
-    // These need to be defined in specializations for
-    // printing to work.
-    // static std::string name();
-    // static std::string symbol();
+    static std::string name() { return ""; };
+    static std::string symbol() { return ""; };
 };
 
 template<long Base, class Exponent>

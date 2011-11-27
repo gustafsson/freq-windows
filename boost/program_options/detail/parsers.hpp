@@ -29,8 +29,8 @@ namespace boost { namespace program_options {
     template<class charT>
     basic_command_line_parser<charT>::
     basic_command_line_parser(const std::vector<
-                              std::basic_string<charT> >& xargs)
-       : detail::cmdline(to_internal(xargs))
+                              std::basic_string<charT> >& args)
+       : detail::cmdline(to_internal(args))
     {}
 
 
@@ -64,9 +64,9 @@ namespace boost { namespace program_options {
 
     template<class charT>
     basic_command_line_parser<charT>& 
-    basic_command_line_parser<charT>::style(int xstyle)
+    basic_command_line_parser<charT>::style(int style)
     {
-        detail::cmdline::style(xstyle);
+        detail::cmdline::style(style);
         return *this;
     }
 

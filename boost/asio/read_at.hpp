@@ -2,7 +2,7 @@
 // read_at.hpp
 // ~~~~~~~~~~~
 //
-// Copyright (c) 2003-2010 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2008 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,13 +15,16 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
-#include <cstddef>
-#include <boost/cstdint.hpp>
-#include <boost/asio/basic_streambuf_fwd.hpp>
-#include <boost/asio/error.hpp>
+#include <boost/asio/detail/push_options.hpp>
 
 #include <boost/asio/detail/push_options.hpp>
+#include <cstddef>
+#include <boost/config.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/asio/detail/pop_options.hpp>
+
+#include <boost/asio/basic_streambuf.hpp>
+#include <boost/asio/error.hpp>
 
 namespace boost {
 namespace asio {
@@ -183,8 +186,6 @@ std::size_t read_at(SyncRandomAccessReadDevice& d,
     boost::uint64_t offset, const MutableBufferSequence& buffers,
     CompletionCondition completion_condition, boost::system::error_code& ec);
 
-#if !defined(BOOST_NO_IOSTREAM)
-
 /// Attempt to read a certain amount of data at the specified offset before
 /// returning.
 /**
@@ -303,8 +304,6 @@ template <typename SyncRandomAccessReadDevice, typename Allocator,
 std::size_t read_at(SyncRandomAccessReadDevice& d,
     boost::uint64_t offset, basic_streambuf<Allocator>& b,
     CompletionCondition completion_condition, boost::system::error_code& ec);
-
-#endif // !defined(BOOST_NO_IOSTREAM)
 
 /*@}*/
 /**
@@ -450,8 +449,6 @@ void async_read_at(AsyncRandomAccessReadDevice& d,
     boost::uint64_t offset, const MutableBufferSequence& buffers,
     CompletionCondition completion_condition, ReadHandler handler);
 
-#if !defined(BOOST_NO_IOSTREAM)
-
 /// Start an asynchronous operation to read a certain amount of data at the
 /// specified offset.
 /**
@@ -561,15 +558,13 @@ void async_read_at(AsyncRandomAccessReadDevice& d,
     boost::uint64_t offset, basic_streambuf<Allocator>& b,
     CompletionCondition completion_condition, ReadHandler handler);
 
-#endif // !defined(BOOST_NO_IOSTREAM)
-
 /*@}*/
 
 } // namespace asio
 } // namespace boost
 
-#include <boost/asio/detail/pop_options.hpp>
+#include <boost/asio/impl/read_at.ipp>
 
-#include <boost/asio/impl/read_at.hpp>
+#include <boost/asio/detail/pop_options.hpp>
 
 #endif // BOOST_ASIO_READ_AT_HPP

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2005-2009. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2005-2008. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -47,10 +47,13 @@ class shared_memory_object
 {
    /// @cond
    //Non-copyable and non-assignable
-   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(shared_memory_object)
+   shared_memory_object(shared_memory_object &);
+   shared_memory_object &operator=(shared_memory_object &);
    /// @endcond
 
    public:
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(shared_memory_object)
+
    //!Default constructor. Represents an empty shared_memory_object.
    shared_memory_object();
 
@@ -106,11 +109,11 @@ class shared_memory_object
    //!use remove().
    ~shared_memory_object();
 
-   //!Returns the name of the shared memory object.
+   //!Returns the name of the file.
    const char *get_name() const;
 
-   //!Returns true if the size of the shared memory object
-   //!can be obtained and writes the size in the passed reference
+   //!Returns the name of the file
+   //!used in the constructor
    bool get_size(offset_t &size) const;
 
    //!Returns access mode

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2007-2009
+// (C) Copyright Ion Gaztanaga 2007-2008
 //
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
@@ -351,14 +351,6 @@ class treap_set_impl
    value_compare value_comp() const
    { return tree_.value_comp(); }
 
-   //! <b>Effects</b>: Returns the priority_compare object used by the treap_set.
-   //! 
-   //! <b>Complexity</b>: Constant.
-   //! 
-   //! <b>Throws</b>: If priority_compare copy-constructor throws.
-   priority_compare priority_comp() const
-   {  return tree_.priority_comp();   }
-
    //! <b>Effects</b>: Returns true if the container is empty.
    //! 
    //! <b>Complexity</b>: Constant.
@@ -416,8 +408,7 @@ class treap_set_impl
    //! <b>Complexity</b>: Average complexity for insert element is at
    //!   most logarithmic.
    //! 
-   //! <b>Throws</b>: If the internal value_compare or priority_compare ordering function throw.
-   //!   Strong guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Strong guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -435,8 +426,7 @@ class treap_set_impl
    //! <b>Complexity</b>: Logarithmic in general, but it's amortized
    //!   constant time if t is inserted immediately before hint.
    //! 
-   //! <b>Throws</b>: If the internal value_compare or priority_compare ordering
-   //!   functions throw. Strong guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Strong guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -444,10 +434,8 @@ class treap_set_impl
    {  return tree_.insert_unique(hint, value);  }
 
    //! <b>Requires</b>: key_value_comp must be a comparison function that induces 
-   //!   the same strict weak ordering as value_compare.
-   //!   key_value_pcomp must be a comparison function that induces 
-   //!   the same strict weak ordering as priority_compare. The difference is that
-   //!   key_value_pcomp and key_value_comp compare an arbitrary key with the contained values.
+   //!   the same strict weak ordering as value_compare. The difference is that
+   //!   key_value_comp compares an ascapegoatitrary key with the contained values.
    //! 
    //! <b>Effects</b>: Checks if a value can be inserted in the treap_set, using
    //!   a user provided key instead of the value itself.
@@ -460,8 +448,7 @@ class treap_set_impl
    //! 
    //! <b>Complexity</b>: Average complexity is at most logarithmic.
    //!
-   //! <b>Throws</b>: If key_value_comp or key_value_pcomp ordering function throw.
-   //!    Strong guarantee.
+   //! <b>Throws</b>: If the key_value_comp ordering function throws. Strong guarantee.
    //! 
    //! <b>Notes</b>: This function is used to improve performance when constructing
    //!   a value_type is expensive: if there is an equivalent value
@@ -476,17 +463,14 @@ class treap_set_impl
    //!
    //!   "commit_data" remains valid for a subsequent "insert_commit" only if no more
    //!   objects are inserted or erased from the treap_set.
-   template<class KeyType, class KeyValueCompare, class KeyValuePriorityCompare>
+   template<class KeyType, class KeyValueCompare>
    std::pair<iterator, bool> insert_check
-      ( const KeyType &key, KeyValueCompare key_value_comp, KeyValuePriorityCompare key_value_pcomp
-      , insert_commit_data &commit_data)
-   {  return tree_.insert_unique_check(key, key_value_comp, key_value_pcomp, commit_data); }
+      (const KeyType &key, KeyValueCompare key_value_comp, insert_commit_data &commit_data)
+   {  return tree_.insert_unique_check(key, key_value_comp, commit_data); }
 
    //! <b>Requires</b>: key_value_comp must be a comparison function that induces 
-   //!   the same strict weak ordering as value_compare.
-   //!   key_value_pcomp must be a comparison function that induces 
-   //!   the same strict weak ordering as priority_compare. The difference is that
-   //!   key_value_pcomp and key_value_comp compare an arbitrary key with the contained values.
+   //!   the same strict weak ordering as value_compare. The difference is that
+   //!   key_value_comp compares an ascapegoatitrary key with the contained values.
    //! 
    //! <b>Effects</b>: Checks if a value can be inserted in the treap_set, using
    //!   a user provided key instead of the value itself, using "hint" 
@@ -501,8 +485,7 @@ class treap_set_impl
    //! <b>Complexity</b>: Logarithmic in general, but it's amortized
    //!   constant time if t is inserted immediately before hint.
    //!
-   //! <b>Throws</b>: If key_value_comp or key_value_pcomp ordering function throw.
-   //!    Strong guarantee.
+   //! <b>Throws</b>: If the key_value_comp ordering function throws. Strong guarantee.
    //! 
    //! <b>Notes</b>: This function is used to improve performance when constructing
    //!   a value_type is expensive: if there is an equivalent value
@@ -517,12 +500,11 @@ class treap_set_impl
    //!   
    //!   "commit_data" remains valid for a subsequent "insert_commit" only if no more
    //!   objects are inserted or erased from the treap_set.
-   template<class KeyType, class KeyValueCompare, class KeyValuePriorityCompare>
+   template<class KeyType, class KeyValueCompare>
    std::pair<iterator, bool> insert_check
-      ( const_iterator hint, const KeyType &key
-      , KeyValueCompare key_value_comp, KeyValuePriorityCompare key_value_pcomp
-      , insert_commit_data &commit_data)
-   {  return tree_.insert_unique_check(hint, key, key_value_comp, key_value_pcomp, commit_data); }
+      (const_iterator hint, const KeyType &key
+      ,KeyValueCompare key_value_comp, insert_commit_data &commit_data)
+   {  return tree_.insert_unique_check(hint, key, key_value_comp, commit_data); }
 
    //! <b>Requires</b>: value must be an lvalue of type value_type. commit_data
    //!   must have been obtained from a previous call to "insert_check".
@@ -553,8 +535,7 @@ class treap_set_impl
    //!   size of the range. However, it is linear in N if the range is already sorted
    //!   by value_comp().
    //! 
-   //! <b>Throws</b>: If the internal value_compare or priority_compare ordering function
-   //!   throw. Basic guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -562,65 +543,13 @@ class treap_set_impl
    void insert(Iterator b, Iterator e)
    {  tree_.insert_unique(b, e);  }
 
-   //! <b>Requires</b>: value must be an lvalue, "pos" must be
-   //!   a valid iterator (or end) and must be the succesor of value
-   //!   once inserted according to the predicate. "value" must not be equal to any
-   //!   inserted key according to the predicate.
-   //!
-   //! <b>Effects</b>: Inserts x into the treap before "pos".
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if "pos" is not
-   //! the successor of "value" treap ordering invariant will be broken.
-   //! This is a low-level function to be used only for performance reasons
-   //! by advanced users.
-   iterator insert_before(const_iterator pos, reference value)
-   {  return tree_.insert_before(pos, value);  }
-
-   //! <b>Requires</b>: value must be an lvalue, and it must be greater than
-   //!   any inserted key according to the predicate.
-   //!
-   //! <b>Effects</b>: Inserts x into the treap in the last position.
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if value is
-   //!   less than the greatest inserted key treap ordering invariant will be broken.
-   //!   This function is slightly more efficient than using "insert_before".
-   //!   This is a low-level function to be used only for performance reasons
-   //!   by advanced users.
-   void push_back(reference value)
-   {  tree_.push_back(value);  }
-
-   //! <b>Requires</b>: value must be an lvalue, and it must be less
-   //!   than any inserted key according to the predicate.
-   //!
-   //! <b>Effects</b>: Inserts x into the treap in the first position.
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if value is
-   //!   greater than the minimum inserted key treap ordering invariant will be broken.
-   //!   This function is slightly more efficient than using "insert_before".
-   //!   This is a low-level function to be used only for performance reasons
-   //!   by advanced users.
-   void push_front(reference value)
-   {  tree_.push_front(value);  }
-
    //! <b>Effects</b>: Erases the element pointed to by pos. 
    //! 
    //! <b>Complexity</b>: Average complexity is constant time.
    //! 
    //! <b>Returns</b>: An iterator to the element after the erased element.
    //!
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -634,7 +563,7 @@ class treap_set_impl
    //! 
    //! <b>Returns</b>: An iterator to the element after the erased elements.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Basic guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -647,8 +576,7 @@ class treap_set_impl
    //! 
    //! <b>Complexity</b>: O(log(size()) + this->count(value)).
    //! 
-   //! <b>Throws</b>: If internal value_compare or priority_compare
-   //!   ordering functions throw. Basic guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -662,8 +590,7 @@ class treap_set_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(key, comp)).
    //! 
-   //! <b>Throws</b>: If comp or internal priority_compare
-   //!   ordering functions throw. Basic guarantee.
+   //! <b>Throws</b>: If the comp ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -684,7 +611,7 @@ class treap_set_impl
    //! 
    //! <b>Returns</b>: An iterator to the element after the erased element.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators 
    //!    to the erased elements.
@@ -708,7 +635,7 @@ class treap_set_impl
    //! 
    //! <b>Returns</b>: An iterator to the element after the erased elements.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Basic guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.
@@ -725,7 +652,7 @@ class treap_set_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(value)). Basic guarantee.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -743,8 +670,7 @@ class treap_set_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(key, comp)).
    //! 
-   //! <b>Throws</b>: If comp or internal priority_compare ordering functions throw.
-   //!   Basic guarantee.
+   //! <b>Throws</b>: If comp ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.
@@ -1658,14 +1584,6 @@ class treap_multiset_impl
    value_compare value_comp() const
    { return tree_.value_comp(); }
 
-   //! <b>Effects</b>: Returns the priority_compare object used by the treap_multiset.
-   //! 
-   //! <b>Complexity</b>: Constant.
-   //! 
-   //! <b>Throws</b>: If priority_compare copy-constructor throws.
-   priority_compare priority_comp() const
-   {  return tree_.priority_comp();   }
-
    //! <b>Effects</b>: Returns true if the container is empty.
    //! 
    //! <b>Complexity</b>: Constant.
@@ -1720,8 +1638,7 @@ class treap_multiset_impl
    //! <b>Complexity</b>: Average complexity for insert element is at
    //!   most logarithmic.
    //! 
-   //! <b>Throws</b>: If the internal value_compare or priority_compare ordering
-   //!  function throws. Strong guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Strong guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1739,8 +1656,7 @@ class treap_multiset_impl
    //! <b>Complexity</b>: Logarithmic in general, but it is amortized
    //!   constant time if t is inserted immediately before hint.
    //! 
-   //! <b>Throws</b>: If internal value_compare or priority_compare ordering functions throw.
-   //!   Strong guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Strong guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1759,8 +1675,7 @@ class treap_multiset_impl
    //!   size of the range. However, it is linear in N if the range is already sorted
    //!   by value_comp().
    //! 
-   //! <b>Throws</b>: If internal value_compare or priority_compare ordering functions throw.
-   //!   Basic guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Does not affect the validity of iterators and references.
    //!   No copy-constructors are called.
@@ -1768,64 +1683,13 @@ class treap_multiset_impl
    void insert(Iterator b, Iterator e)
    {  tree_.insert_equal(b, e);  }
 
-   //! <b>Requires</b>: value must be an lvalue, "pos" must be
-   //!   a valid iterator (or end) and must be the succesor of value
-   //!   once inserted according to the predicate
-   //!
-   //! <b>Effects</b>: Inserts x into the treap before "pos".
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if "pos" is not
-   //! the successor of "value" treap ordering invariant will be broken.
-   //! This is a low-level function to be used only for performance reasons
-   //! by advanced users.
-   iterator insert_before(const_iterator pos, reference value)
-   {  return tree_.insert_before(pos, value);  }
-
-   //! <b>Requires</b>: value must be an lvalue, and it must be no less
-   //!   than the greatest inserted key.
-   //!
-   //! <b>Effects</b>: Inserts x into the treap in the last position.
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if value is
-   //!   less than the greatest inserted key treap ordering invariant will be broken.
-   //!   This function is slightly more efficient than using "insert_before".
-   //!   This is a low-level function to be used only for performance reasons
-   //!   by advanced users.
-   void push_back(reference value)
-   {  tree_.push_back(value);  }
-
-   //! <b>Requires</b>: value must be an lvalue, and it must be no greater
-   //!   than the minimum inserted key
-   //!
-   //! <b>Effects</b>: Inserts x into the treap in the first position.
-   //! 
-   //! <b>Complexity</b>: Constant time.
-   //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
-   //! 
-   //! <b>Note</b>: This function does not check preconditions so if value is
-   //!   greater than the minimum inserted key treap ordering invariant will be broken.
-   //!   This function is slightly more efficient than using "insert_before".
-   //!   This is a low-level function to be used only for performance reasons
-   //!   by advanced users.
-   void push_front(reference value)
-   {  tree_.push_front(value);  }
-
    //! <b>Effects</b>: Erases the element pointed to by pos. 
    //! 
    //! <b>Complexity</b>: Average complexity is constant time. 
    //! 
    //! <b>Returns</b>: An iterator to the element after the erased element.
    //!
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -1839,7 +1703,7 @@ class treap_multiset_impl
    //! <b>Complexity</b>: Average complexity for erase range is at most 
    //!   O(log(size() + N)), where N is the number of elements in the range.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Basic guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -1852,8 +1716,7 @@ class treap_multiset_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(value)).
    //! 
-   //! <b>Throws</b>: If the internal value_compare or priority_compare ordering
-   //!   functiona throw. Basic guarantee.
+   //! <b>Throws</b>: If the internal value_compare ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -1867,7 +1730,7 @@ class treap_multiset_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(key, comp)).
    //! 
-   //! <b>Throws</b>: If comp or internal priority_compare ordering functions throw. Basic guarantee.
+   //! <b>Throws</b>: If comp ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators (but not the references)
    //!    to the erased elements. No destructors are called.
@@ -1888,7 +1751,7 @@ class treap_multiset_impl
    //! 
    //! <b>Complexity</b>: Average complexity for erase element is constant time. 
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Strong guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators 
    //!    to the erased elements.
@@ -1912,7 +1775,7 @@ class treap_multiset_impl
    //! <b>Complexity</b>: Average complexity for erase range is at most 
    //!   O(log(size() + N)), where N is the number of elements in the range.
    //! 
-   //! <b>Throws</b>: If the internal priority_compare function throws. Basic guarantee.
+   //! <b>Throws</b>: Nothing.
    //! 
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.
@@ -1947,7 +1810,7 @@ class treap_multiset_impl
    //! 
    //! <b>Complexity</b>: O(log(size() + this->count(key, comp)).
    //! 
-   //! <b>Throws</b>: If comp or internal priority_compare ordering functions throw. Basic guarantee.
+   //! <b>Throws</b>: If comp ordering function throws. Basic guarantee.
    //! 
    //! <b>Note</b>: Invalidates the iterators
    //!    to the erased elements.

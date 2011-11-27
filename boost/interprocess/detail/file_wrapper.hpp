@@ -25,9 +25,11 @@ namespace detail{
 class file_wrapper
 {
    /// @cond
-   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(file_wrapper)
+   file_wrapper(file_wrapper&);
+   file_wrapper & operator=(file_wrapper&);
    /// @endcond
    public:
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(file_wrapper)
 
    //!Default constructor.
    //!Represents an empty file_wrapper.

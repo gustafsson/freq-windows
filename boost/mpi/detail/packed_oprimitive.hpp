@@ -77,12 +77,11 @@ public:
         save_impl(&t, get_mpi_datatype<T>(t), 1);
     }
 
-    template<class CharType>
-    void save(const std::basic_string<CharType> &s)
+    void save(const std::string &s)
     {
       unsigned int l = static_cast<unsigned int>(s.size());
       save(l);
-      save_impl(s.data(),get_mpi_datatype(CharType()),s.size());
+      save_impl(s.data(),MPI_CHAR,s.size());
     }
 
 private:

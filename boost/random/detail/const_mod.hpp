@@ -7,7 +7,7 @@
  *
  * See http://www.boost.org for most recent version including documentation.
  *
- * $Id: const_mod.hpp 58649 2010-01-02 21:23:17Z steven_watanabe $
+ * $Id: const_mod.hpp 41369 2007-11-25 18:07:19Z bemandawes $
  *
  * Revision history
  *  2001-02-18  moved to individual header files
@@ -21,8 +21,6 @@
 #include <boost/cstdint.hpp>
 #include <boost/integer_traits.hpp>
 #include <boost/detail/workaround.hpp>
-
-#include <boost/random/detail/disable_warnings.hpp>
 
 namespace boost {
 namespace random {
@@ -357,7 +355,5 @@ private:
 
 } // namespace random
 } // namespace boost
-
-#include <boost/random/detail/enable_warnings.hpp>
 
 #endif // BOOST_RANDOM_CONST_MOD_HPP

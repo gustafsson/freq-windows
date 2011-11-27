@@ -20,7 +20,6 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -81,7 +80,6 @@ namespace boost { namespace xpressive
 
         template<typename T>
         struct value_wrapper
-          : private noncopyable
         {
             value_wrapper()
               : value()
@@ -745,6 +743,9 @@ namespace boost { namespace xpressive
         {
             return proto::value(*this);
         }
+
+    private:
+        local(local const &);
     };
 
     /// as (a.k.a., lexical_cast)
@@ -856,24 +857,24 @@ namespace boost { namespace xpressive
     {
         inline void ignore_unused_regex_actions()
         {
-            detail::ignore_unused(xpressive::push);
-            detail::ignore_unused(xpressive::push_back);
-            detail::ignore_unused(xpressive::push_front);
-            detail::ignore_unused(xpressive::pop);
-            detail::ignore_unused(xpressive::pop_back);
-            detail::ignore_unused(xpressive::pop_front);
-            detail::ignore_unused(xpressive::top);
-            detail::ignore_unused(xpressive::back);
-            detail::ignore_unused(xpressive::front);
-            detail::ignore_unused(xpressive::first);
-            detail::ignore_unused(xpressive::second);
-            detail::ignore_unused(xpressive::matched);
-            detail::ignore_unused(xpressive::length);
-            detail::ignore_unused(xpressive::str);
-            detail::ignore_unused(xpressive::insert);
-            detail::ignore_unused(xpressive::make_pair);
-            detail::ignore_unused(xpressive::check);
-            detail::ignore_unused(xpressive::let);
+            ignore_unused(xpressive::push);
+            ignore_unused(xpressive::push_back);
+            ignore_unused(xpressive::push_front);
+            ignore_unused(xpressive::pop);
+            ignore_unused(xpressive::pop_back);
+            ignore_unused(xpressive::pop_front);
+            ignore_unused(xpressive::top);
+            ignore_unused(xpressive::back);
+            ignore_unused(xpressive::front);
+            ignore_unused(xpressive::first);
+            ignore_unused(xpressive::second);
+            ignore_unused(xpressive::matched);
+            ignore_unused(xpressive::length);
+            ignore_unused(xpressive::str);
+            ignore_unused(xpressive::insert);
+            ignore_unused(xpressive::make_pair);
+            ignore_unused(xpressive::check);
+            ignore_unused(xpressive::let);
         }
     }
 

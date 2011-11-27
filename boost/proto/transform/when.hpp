@@ -10,6 +10,7 @@
     #ifndef BOOST_PROTO_TRANSFORM_WHEN_HPP_EAN_10_29_2007
     #define BOOST_PROTO_TRANSFORM_WHEN_HPP_EAN_10_29_2007
 
+    #include <boost/proto/detail/prefix.hpp>
     #include <boost/preprocessor/cat.hpp>
     #include <boost/preprocessor/repetition/enum_params.hpp>
     #include <boost/preprocessor/repetition/enum_trailing_params.hpp>
@@ -20,6 +21,7 @@
     #include <boost/proto/transform/call.hpp>
     #include <boost/proto/transform/make.hpp>
     #include <boost/proto/transform/impl.hpp>
+    #include <boost/proto/detail/suffix.hpp>
 
     namespace boost { namespace proto
     {
@@ -46,16 +48,16 @@
         /// In <tt>when\<G, T\></tt>, when \c T is a class type it is a
         /// PrimitiveTransform and the following equivalencies hold:
         ///
-        /// <tt>boost::result_of\<when\<G,T\>(E,S,V)\>::type</tt> is the same as
-        /// <tt>boost::result_of\<T(E,S,V)\>::type</tt>.
+        /// <tt>boost::result_of\<when\<G,T\>(E,S,V)\>::::type</tt> is the same as
+        /// <tt>boost::result_of\<T(E,S,V)\>::::type</tt>.
         ///
-        /// <tt>when\<G,T\>()(e,s,d)</tt> is the same as
-        /// <tt>T()(e,s,d)</tt>.
-        template<typename Grammar, typename PrimitiveTransform /*= Grammar*/>
+        /// <tt>when\<G,T\>()(e,s,v)</tt> is the same as
+        /// <tt>T()(e,s,v)</tt>.
+        template<typename Grammar, typename PrimitiveTransform BOOST_PROTO_WHEN_BUILDING_DOCS(= Grammar)>
         struct when
           : PrimitiveTransform
         {
-            typedef typename Grammar::proto_grammar proto_grammar;
+            typedef typename Grammar::proto_base_expr proto_base_expr;
         };
 
         /// \brief A specialization that treats function pointer Transforms as
@@ -130,7 +132,7 @@
         ///
         /// The <tt>when\<G, R(A0,A1,...)\></tt> form accepts either a
         /// CallableTransform or an ObjectTransform as its second parameter.
-        /// <tt>when\<\></tt> uses <tt>is_callable\<R\>::value</tt> to
+        /// <tt>when\<\></tt> uses <tt>is_callable\<R\>::::value</tt> to
         /// distinguish between the two, and uses <tt>call\<\></tt> to
         /// evaluate CallableTransforms and <tt>make\<\></tt> to evaluate
         /// ObjectTransforms.
@@ -138,7 +140,7 @@
         struct when<Grammar, R(BOOST_PP_ENUM_PARAMS(N, A))>
           : transform<when<Grammar, R(BOOST_PP_ENUM_PARAMS(N, A))> >
         {
-            typedef typename Grammar::proto_grammar proto_grammar;
+            typedef typename Grammar::proto_base_expr proto_base_expr;
 
             // Note: do not evaluate is_callable<R> in this scope.
             // R may be an incomplete type at this point.
@@ -146,12 +148,16 @@
             template<typename Expr, typename State, typename Data>
             struct impl : transform_impl<Expr, State, Data>
             {
-                // OK to evaluate is_callable<R> here. R should be compete by now.
+                typedef call<R(BOOST_PP_ENUM_PARAMS(N, A))> call_;
+                typedef make<R(BOOST_PP_ENUM_PARAMS(N, A))> make_;
+
                 typedef
                     typename mpl::if_c<
+                        // OK to evaluate is_callable<R> here.
+                        // R should be compete by now.
                         is_callable<R>::value
-                      , call<R(BOOST_PP_ENUM_PARAMS(N, A))> // "R" is a function to call
-                      , make<R(BOOST_PP_ENUM_PARAMS(N, A))> // "R" is an object to construct
+                      , call_                       // "R" is a function to call
+                      , make_                       // "R" is an object to construct
                     >::type
                 which;
 
@@ -159,13 +165,13 @@
 
                 /// Evaluate <tt>R(A0,A1,...)</tt> as a transform either with
                 /// <tt>call\<\></tt> or with <tt>make\<\></tt> depending on
-                /// whether <tt>is_callable\<R\>::value</tt> is \c true or
+                /// whether <tt>is_callable\<R\>::::value</tt> is \c true or
                 /// \c false.
                 ///
                 /// \param e The current expression
                 /// \param s The current state
                 /// \param d An arbitrary data
-                /// \pre <tt>matches\<Expr, Grammar\>::value</tt> is \c true
+                /// \pre <tt>matches\<Expr, Grammar\>::::value</tt> is \c true
                 /// \return <tt>which()(e, s, d)</tt>
                 result_type operator ()(
                     typename impl::expr_param   e

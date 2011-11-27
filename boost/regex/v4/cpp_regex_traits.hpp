@@ -56,7 +56,7 @@
 
 #ifdef BOOST_MSVC
 #pragma warning(push)
-#pragma warning(disable:4786 4251)
+#pragma warning(disable:4786)
 #endif
 
 namespace boost{ 
@@ -187,7 +187,6 @@ struct cpp_regex_traits_base
 #ifndef BOOST_NO_STD_MESSAGES
          if(m_pmessages == b.m_pmessages)
          {
-            return m_pcollate < b.m_pcollate;
          }
          return m_pmessages < b.m_pmessages;
 #else
@@ -213,7 +212,7 @@ std::locale cpp_regex_traits_base<charT>::imbue(const std::locale& l)
    m_locale = l;
    m_pctype = &BOOST_USE_FACET(std::ctype<charT>, l);
 #ifndef BOOST_NO_STD_MESSAGES
-   m_pmessages = BOOST_HAS_FACET(std::messages<charT>, l) ? &BOOST_USE_FACET(std::messages<charT>, l) : 0;
+   m_pmessages = &BOOST_USE_FACET(std::messages<charT>, l);
 #endif
    m_pcollate = &BOOST_USE_FACET(std::collate<charT>, l);
    return result;
@@ -277,7 +276,7 @@ void cpp_regex_traits_char_layer<charT>::init()
    typename std::messages<charT>::catalog cat = reinterpret_cast<std::messages<char>::catalog>(-1);
 #endif
    std::string cat_name(cpp_regex_traits<charT>::get_catalog_name());
-   if(cat_name.size() && (this->m_pmessages != 0))
+   if(cat_name.size())
    {
       cat = this->m_pmessages->open(
          cat_name, 
@@ -310,8 +309,7 @@ void cpp_regex_traits_char_layer<charT>::init()
       }
       catch(...)
       {
-         if(this->m_pmessages)
-            this->m_pmessages->close(cat);
+         this->m_pmessages->close(cat);
          throw;
       }
 #endif
@@ -655,7 +653,7 @@ void cpp_regex_traits_implementation<charT>::init()
    typename std::messages<charT>::catalog cat = reinterpret_cast<std::messages<char>::catalog>(-1);
 #endif
    std::string cat_name(cpp_regex_traits<charT>::get_catalog_name());
-   if(cat_name.size() && (this->m_pmessages != 0))
+   if(cat_name.size())
    {
       cat = this->m_pmessages->open(
          cat_name, 
@@ -718,7 +716,7 @@ void cpp_regex_traits_implementation<charT>::init()
          cpp_regex_traits_implementation<charT>::mask_unicode,
       };
 #else
-      static const char_class_type masks[16] = 
+      static const char_class_type masks[14] = 
       {
          ::boost::re_detail::char_class_alnum,
          ::boost::re_detail::char_class_alpha,
@@ -839,8 +837,8 @@ bool cpp_regex_traits_implementation<charT>::isctype(const charT c, char_class_t
       || ((mask & ::boost::re_detail::char_class_blank) && (m_pctype->is(std::ctype<charT>::space, c)) && !::boost::re_detail::is_separator(c))
       || ((mask & ::boost::re_detail::char_class_word) && (c == '_'))
       || ((mask & ::boost::re_detail::char_class_unicode) && ::boost::re_detail::is_extended(c))
-      || ((mask & ::boost::re_detail::char_class_vertical_space) && (is_separator(c) || (c == '\v')))
-      || ((mask & ::boost::re_detail::char_class_horizontal_space) && m_pctype->is(std::ctype<charT>::space, c) && !(is_separator(c) || (c == '\v')));
+      || ((mask & ::boost::re_detail::char_class_vertical) && (is_separator(c) || (c == '\v')))
+      || ((mask & ::boost::re_detail::char_class_horizontal) && m_pctype->is(std::ctype<charT>::space, c) && !(is_separator(c) || (c == '\v')));
 }
 #endif
 

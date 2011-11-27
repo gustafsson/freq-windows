@@ -14,7 +14,6 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
-#include <boost/signals2/expired_slot.hpp>
 #include <boost/signals2/signal_base.hpp>
 #include <boost/throw_exception.hpp>
 #include <vector>
@@ -27,6 +26,15 @@ namespace boost
     {
       class tracked_objects_visitor;
     }
+
+    class expired_slot: public bad_weak_ptr
+    {
+    public:
+      virtual char const * what() const throw()
+      {
+        return "boost::signals2::expired_slot";
+      }
+    };
 
     class slot_base
     {

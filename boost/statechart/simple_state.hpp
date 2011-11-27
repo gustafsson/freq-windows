@@ -1,7 +1,7 @@
 #ifndef BOOST_STATECHART_SIMPLE_STATE_HPP_INCLUDED
 #define BOOST_STATECHART_SIMPLE_STATE_HPP_INCLUDED
 //////////////////////////////////////////////////////////////////////////////
-// Copyright 2002-2010 Andreas Huber Doenni
+// Copyright 2002-2008 Andreas Huber Doenni
 // Distributed under the Boost Software License, Version 1.0. (See accompany-
 // ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //////////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,6 @@
 #include <boost/get_pointer.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/assert.hpp>
-#include <boost/type_traits/is_base_of.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/cast.hpp> // boost::polymorphic_downcast
@@ -235,7 +234,7 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
     OtherContext & context()
     {
       typedef typename mpl::if_<
-        is_base_of< OtherContext, MostDerived >,
+        is_same< OtherContext, MostDerived >,
         context_impl_this_context,
         context_impl_other_context
       >::type impl;
@@ -246,7 +245,7 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
     const OtherContext & context() const
     {
       typedef typename mpl::if_<
-        is_base_of< OtherContext, MostDerived >,
+        is_same< OtherContext, MostDerived >,
         context_impl_this_context,
         context_impl_other_context
       >::type impl;
@@ -283,12 +282,12 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
 
     void post_event( const event_base_ptr_type & pEvent )
     {
-      outermost_context_base().post_event_impl( pEvent );
+      outermost_context_base().post_event( pEvent );
     }
 
     void post_event( const event_base & evt )
     {
-      outermost_context_base().post_event_impl( evt );
+      outermost_context_base().post_event( evt );
     }
 
     result discard_event()
@@ -346,11 +345,6 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
     {
       outermost_context_base().template clear_deep_history<
         HistoryContext, orthogonalPosition >();
-    }
-
-    const event_base * triggering_event() const
-    {
-      return outermost_context_base().triggering_event();
     }
 
   protected:
@@ -727,7 +721,7 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
         context< termination_state_type >() );
       const typename
         common_context_type::inner_context_ptr_type pCommonContext(
-          terminationState.template context_ptr< common_context_type >() );
+          terminationState.context_ptr< common_context_type >() );
       outermost_context_base_type & outermostContextBase(
         pCommonContext->outermost_context_base() );
 
@@ -949,7 +943,7 @@ class simple_state : public detail::simple_state_base_type< MostDerived,
       template< class State >
       static void check_store_deep_history_impl( State & stt )
       {
-        stt.template store_deep_history_impl< MostDerived >();
+        stt.store_deep_history_impl< MostDerived >();
       }
     };
     friend struct check_store_deep_history_impl_yes;

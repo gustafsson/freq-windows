@@ -55,7 +55,7 @@
 #include <boost/interprocess/containers/container/detail/iterators.hpp>
 #include <boost/interprocess/containers/container/detail/algorithms.hpp>
 #include <boost/interprocess/containers/container/detail/mpl.hpp>
-#include <boost/interprocess/containers/container/container_fwd.hpp>
+#include <boost/interprocess/containers/container/containers_fwd.hpp>
 #include <cstddef>
 #include <iterator>
 #include <cassert>
@@ -71,12 +71,12 @@
 #include <boost/interprocess/detail/move.hpp>
 #include <boost/interprocess/containers/container/detail/advanced_insert_int.hpp>
 
-#ifdef BOOST_CONTAINER_DOXYGEN_INVOKED
+#ifdef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 namespace boost {
-namespace container {
+namespace interprocess {
 #else
 namespace boost {
-namespace container {
+namespace interprocess_container {
 #endif
 
 /// @cond
@@ -89,8 +89,8 @@ struct deque_value_traits
    typedef T value_type;
    typedef A allocator_type;
    static const bool trivial_dctr = boost::has_trivial_destructor<value_type>::value;
-   static const bool trivial_dctr_after_move = false;
-      //::boost::has_trivial_destructor_after_move<value_type>::value || trivial_dctr;
+   static const bool trivial_dctr_after_move = 
+      boost::interprocess::has_trivial_destructor_after_move<value_type>::value || trivial_dctr;
    static const bool trivial_copy = has_trivial_copy<value_type>::value;
    static const bool nothrow_copy = has_nothrow_copy<value_type>::value;
    static const bool trivial_assign = has_trivial_assign<value_type>::value;
@@ -494,8 +494,6 @@ template <class T, class Alloc>
 class deque : protected deque_base<T, Alloc>
 {
    /// @cond
-   typedef typename containers_detail::
-      move_const_ref_type<T>::type                    insert_const_ref_type;
   typedef deque_base<T, Alloc> Base;
 
    public:                         // Basic types
@@ -532,7 +530,6 @@ class deque : protected deque_base<T, Alloc>
 
    /// @cond
    private:                      // Internal typedefs
-   BOOST_COPYABLE_AND_MOVABLE(deque)
    typedef ptr_alloc_ptr index_pointer;
    static std::size_t s_buffer_size() 
       { return Base::s_buffer_size(); }
@@ -545,6 +542,7 @@ class deque : protected deque_base<T, Alloc>
    allocator_type get_allocator() const { return Base::alloc(); }
 
    public:                         // Basic accessors
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(deque)
 
    iterator begin() 
       { return this->members_.m_start; }
@@ -655,7 +653,7 @@ class deque : protected deque_base<T, Alloc>
       priv_destroy_range(this->members_.m_start, this->members_.m_finish);
    }
 
-   deque& operator= (BOOST_INTERPROCESS_COPY_ASSIGN_REF(deque) x) 
+   deque& operator= (const deque& x) 
    {
       const size_type len = size();
       if (&x != this) {
@@ -697,16 +695,16 @@ class deque : protected deque_base<T, Alloc>
       this->priv_assign_dispatch(first, last, Result());
    }
 
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   void push_back(T &x) { push_back(const_cast<const T &>(x)); }
-
-   template<class U>
-   void push_back(const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   { return priv_push_back(u); }
-   #endif
-
-   void push_back(insert_const_ref_type t)
-   {  return priv_push_back(t);  }
+   void push_back(const value_type& t) 
+   {
+      if(this->priv_push_back_simple_available()){
+         new(this->priv_push_back_simple_pos())value_type(t);
+         this->priv_push_back_simple_commit();
+      }
+      else{
+         this->priv_insert_aux(cend(), size_type(1), t);
+      }
+   }
 
    void push_back(BOOST_INTERPROCESS_RV_REF(value_type) t) 
    {
@@ -719,16 +717,16 @@ class deque : protected deque_base<T, Alloc>
       }
    }
 
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   void push_front(T &x) { push_front(const_cast<const T &>(x)); }
-
-   template<class U>
-   void push_front(const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   { return priv_push_front(u); }
-   #endif
-
-   void push_front(insert_const_ref_type t)
-   { return priv_push_front(t); }
+   void push_front(const value_type& t)
+   {
+      if(this->priv_push_front_simple_available()){
+         new(this->priv_push_front_simple_pos())value_type(t);
+         this->priv_push_front_simple_commit();
+      }
+      else{
+         this->priv_insert_aux(cbegin(), size_type(1), t);
+      }
+   }
 
    void push_front(BOOST_INTERPROCESS_RV_REF(value_type) t)
    {
@@ -761,17 +759,22 @@ class deque : protected deque_base<T, Alloc>
          this->priv_pop_front_aux();
    }
 
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   iterator insert(const_iterator position, T &x)
-   { return this->insert(position, const_cast<const T &>(x)); }
-
-   template<class U>
-   iterator insert(const_iterator position, const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   {  return this->priv_insert(position, u); }
-   #endif
-
-   iterator insert(const_iterator position, insert_const_ref_type x) 
-   {  return this->priv_insert(position, x); }
+   iterator insert(const_iterator position, const value_type& x) 
+   {
+      if (position == cbegin()){
+         this->push_front(x);
+         return begin();
+      }
+      else if (position == cend()){
+         this->push_back(x);
+         return (end()-1);
+      }
+      else {
+         size_type n = position - cbegin();
+         this->priv_insert_aux(position, size_type(1), x);
+         return iterator(this->begin() + n);
+      }
+   }
 
    iterator insert(const_iterator position, BOOST_INTERPROCESS_RV_REF(value_type) mx) 
    {
@@ -804,7 +807,7 @@ class deque : protected deque_base<T, Alloc>
       this->priv_insert_dispatch(pos, first, last, Result());
    }
 
-   #if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+   #if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
    template <class... Args>
    void emplace_back(Args&&... args)
@@ -814,8 +817,7 @@ class deque : protected deque_base<T, Alloc>
          this->priv_push_back_simple_commit();
       }
       else{
-         typedef containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> type;
-         type &&proxy = type(boost::interprocess::forward<Args>(args)...);
+         containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> proxy(boost::interprocess::forward<Args>(args)...);
          this->priv_insert_aux_impl(this->cend(), 1, proxy);
       }
    }
@@ -828,8 +830,7 @@ class deque : protected deque_base<T, Alloc>
          this->priv_push_front_simple_commit();
       }
       else{
-         typedef containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> type;
-         type &&proxy = type(boost::interprocess::forward<Args>(args)...);
+         containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> proxy(boost::interprocess::forward<Args>(args)...);
          this->priv_insert_aux_impl(this->cbegin(), 1, proxy);
       }
    }
@@ -847,8 +848,7 @@ class deque : protected deque_base<T, Alloc>
       }
       else{
          size_type n = p - this->cbegin();
-         typedef containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> type;
-         type &&proxy = type(boost::interprocess::forward<Args>(args)...);
+         containers_detail::advanced_insert_aux_emplace<T, iterator, Args...> proxy(boost::interprocess::forward<Args>(args)...);
          this->priv_insert_aux_impl(p, 1, proxy);
          return iterator(this->begin() + n);
       }
@@ -1048,46 +1048,6 @@ class deque : protected deque_base<T, Alloc>
    /// @cond
    private:
 
-   iterator priv_insert(const_iterator position, const value_type &x) 
-   {
-      if (position == cbegin()){
-         this->push_front(x);
-         return begin();
-      }
-      else if (position == cend()){
-         this->push_back(x);
-         return (end()-1);
-      }
-      else {
-         size_type n = position - cbegin();
-         this->priv_insert_aux(position, size_type(1), x);
-         return iterator(this->begin() + n);
-      }
-   }
-
-   void priv_push_front(const value_type &t)
-   {
-      if(this->priv_push_front_simple_available()){
-         new(this->priv_push_front_simple_pos())value_type(t);
-         this->priv_push_front_simple_commit();
-      }
-      else{
-         this->priv_insert_aux(cbegin(), size_type(1), t);
-      }
-   }
-
-   void priv_push_back(const value_type &t)
-   {
-      if(this->priv_push_back_simple_available()){
-         new(this->priv_push_back_simple_pos())value_type(t);
-         this->priv_push_back_simple_commit();
-      }
-      else{
-         this->priv_insert_aux(cend(), size_type(1), t);
-      }
-   }
-
-
    bool priv_push_back_simple_available() const
    {
       return this->members_.m_map &&
@@ -1248,7 +1208,7 @@ class deque : protected deque_base<T, Alloc>
          pos = this->members_.m_start + elemsbefore;
          if (elemsbefore >= difference_type(n)) {
             iterator start_n = this->members_.m_start + difference_type(n); 
-            ::boost::interprocess::uninitialized_move(this->members_.m_start, start_n, new_start);
+            boost::interprocess::uninitialized_move(this->members_.m_start, start_n, new_start);
             this->members_.m_start = new_start;
             boost::interprocess::move(start_n, pos, old_start);
             interf.copy_all_to(pos - difference_type(n));
@@ -1258,7 +1218,7 @@ class deque : protected deque_base<T, Alloc>
             iterator mid_start = old_start - mid_count;
             interf.uninitialized_copy_some_and_update(mid_start, mid_count, true);
             this->members_.m_start = mid_start;
-            ::boost::interprocess::uninitialized_move(old_start, pos, new_start);
+            boost::interprocess::uninitialized_move(old_start, pos, new_start);
             this->members_.m_start = new_start;
             interf.copy_all_to(old_start);
          }
@@ -1271,7 +1231,7 @@ class deque : protected deque_base<T, Alloc>
          pos = this->members_.m_finish - elemsafter;
          if (elemsafter >= difference_type(n)) {
             iterator finish_n = this->members_.m_finish - difference_type(n);
-            ::boost::interprocess::uninitialized_move(finish_n, this->members_.m_finish, this->members_.m_finish);
+            boost::interprocess::uninitialized_move(finish_n, this->members_.m_finish, this->members_.m_finish);
             this->members_.m_finish = new_finish;
             boost::interprocess::move_backward(pos, finish_n, old_finish);
             interf.copy_all_to(pos);
@@ -1279,7 +1239,7 @@ class deque : protected deque_base<T, Alloc>
          else {
             interf.uninitialized_copy_some_and_update(old_finish, elemsafter, false);
             this->members_.m_finish += n-elemsafter;
-            ::boost::interprocess::uninitialized_move(pos, old_finish, this->members_.m_finish);
+            boost::interprocess::uninitialized_move(pos, old_finish, this->members_.m_finish);
             this->members_.m_finish = new_finish;
             interf.copy_all_to(pos);
          }
@@ -1339,10 +1299,10 @@ class deque : protected deque_base<T, Alloc>
                ++cur_node) {
             FwdIt mid = first;
             std::advance(mid, this->s_buffer_size());
-            ::boost::interprocess::uninitialized_copy_or_move(first, mid, *cur_node);
+            boost::interprocess::uninitialized_copy_or_move(first, mid, *cur_node);
             first = mid;
          }
-         ::boost::interprocess::uninitialized_copy_or_move(first, last, this->members_.m_finish.m_first);
+         boost::interprocess::uninitialized_copy_or_move(first, last, this->members_.m_finish.m_first);
       }
       BOOST_CATCH(...){
          this->priv_destroy_range(this->members_.m_start, iterator(*cur_node, cur_node));
@@ -1503,16 +1463,17 @@ inline void swap(deque<T, A>& x, deque<T, A>& y)
 /// @cond
 
 namespace boost {
-/*
+namespace interprocess {
+
 //!has_trivial_destructor_after_move<> == true_type
 //!specialization for optimizations
 template <class T, class A>
-struct has_trivial_destructor_after_move<boost::container::deque<T, A> >
+struct has_trivial_destructor_after_move<boost::interprocess_container::deque<T, A> >
 {
    enum {   value = has_trivial_destructor<A>::value  };
 };
-*/
-}
+
+}}
 
 /// @endcond
 

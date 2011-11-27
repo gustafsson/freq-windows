@@ -86,8 +86,7 @@ public:
         load_impl(&t, get_mpi_datatype(t), 1);
     }
 
-    template<class CharType>
-    void load(std::basic_string<CharType> & s)
+    void load( std::string & s)
     {
        unsigned int l;
         load(l);
@@ -97,7 +96,7 @@ public:
         #endif
         s.resize(l);
         // note breaking a rule here - could be a problem on some platform
-        load_impl(const_cast<char *>(s.data()),get_mpi_datatype(CharType()),l);
+        load_impl(const_cast<char *>(s.data()),MPI_CHAR,l);
     }
 
 private:

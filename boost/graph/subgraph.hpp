@@ -124,7 +124,7 @@ typedef typename Traits::traversal_category        traversal_category;
     {
         typename Graph::vertex_iterator v, v_end;
         vertices_size_type i = 0;
-        for(boost::tie(v, v_end) = vertices(m_graph); v != v_end; ++v)
+        for(tie(v, v_end) = vertices(m_graph); v != v_end; ++v)
             m_global_vertex[i++] = *v;
     }
 
@@ -175,27 +175,25 @@ typedef typename Traits::traversal_category        traversal_category;
 
     // local <-> global descriptor conversion functions
     vertex_descriptor local_to_global(vertex_descriptor u_local) const
-    { return is_root() ? u_local : m_global_vertex[u_local]; }
+    { return m_global_vertex[u_local]; }
 
     vertex_descriptor global_to_local(vertex_descriptor u_global) const {
         vertex_descriptor u_local; bool in_subgraph;
-        if (is_root()) return u_global;
-        boost::tie(u_local, in_subgraph) = this->find_vertex(u_global);
+        tie(u_local, in_subgraph) = this->find_vertex(u_global);
         assert(in_subgraph == true);
         return u_local;
     }
 
     edge_descriptor local_to_global(edge_descriptor e_local) const
-    { return is_root() ? e_local : m_global_edge[get(get(edge_index, m_graph), e_local)]; }
+    { return m_global_edge[get(get(edge_index, m_graph), e_local)]; }
 
     edge_descriptor global_to_local(edge_descriptor e_global) const
-    { return is_root() ? e_global : (*m_local_edge.find(get(get(edge_index, root().m_graph), e_global))).second; }
+    { return (*m_local_edge.find(get(get(edge_index, root().m_graph), e_global))).second; }
 
     // Is vertex u (of the root graph) contained in this subgraph?
     // If so, return the matching local vertex.
     std::pair<vertex_descriptor, bool>
     find_vertex(vertex_descriptor u_global) const {
-        if (is_root()) return std::make_pair(u_global, true);
         typename std::map<vertex_descriptor, vertex_descriptor>::const_iterator
             i = m_local_vertex.find(u_global);
         bool valid = i != m_local_vertex.end();
@@ -315,7 +313,7 @@ public: // Probably shouldn't be public....
     {
         edge_descriptor e_local;
         bool inserted;
-        boost::tie(e_local, inserted) = add_edge(u_local, v_local, m_graph);
+        tie(e_local, inserted) = add_edge(u_local, v_local, m_graph);
         put(edge_index, m_graph, e_local, m_edge_counter++);
         m_global_edge.push_back(e_global);
         m_local_edge[get(get(edge_index, this->root()), e_global)] = e_local;
@@ -358,7 +356,7 @@ add_vertex(typename subgraph<G>::vertex_descriptor u_global,
     // remember edge global and local maps
     {
         typename subgraph<G>::out_edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = out_edges(u_global, r);
+        for (tie(ei, ei_end) = out_edges(u_global, r);
             ei != ei_end; ++ei) {
             e_global = *ei;
             v_global = target(e_global, r);
@@ -369,10 +367,10 @@ add_vertex(typename subgraph<G>::vertex_descriptor u_global,
     if (is_directed(g)) { // not necessary for undirected graph
         typename subgraph<G>::vertex_iterator vi, vi_end;
         typename subgraph<G>::out_edge_iterator ei, ei_end;
-        for(boost::tie(vi, vi_end) = vertices(r); vi != vi_end; ++vi) {
+        for(tie(vi, vi_end) = vertices(r); vi != vi_end; ++vi) {
             v_global = *vi;
             if(g.find_vertex(v_global).second)
-            for(boost::tie(ei, ei_end) = out_edges(*vi, r); ei != ei_end; ++ei) {
+            for(tie(ei, ei_end) = out_edges(*vi, r); ei != ei_end; ++ei) {
                 e_global = *ei;
                 uu_global = target(e_global, r);
                 if(uu_global == u_global && g.find_vertex(v_global).second) {
@@ -507,8 +505,8 @@ namespace detail {
             // add local edge only if u_global and v_global are in subgraph g
             Vertex u_local, v_local;
             bool u_in_subgraph, v_in_subgraph;
-            boost::tie(u_local, u_in_subgraph) = g.find_vertex(u_global);
-            boost::tie(v_local, v_in_subgraph) = g.find_vertex(v_global);
+            tie(u_local, u_in_subgraph) = g.find_vertex(u_global);
+            tie(v_local, v_in_subgraph) = g.find_vertex(v_global);
             if(u_in_subgraph && v_in_subgraph) {
                 g.local_add_edge(u_local, v_local, e_global);
             }
@@ -525,7 +523,7 @@ namespace detail {
         if(g.is_root()) {
             typename subgraph<Graph>::edge_descriptor e_global;
             bool inserted;
-            boost::tie(e_global, inserted) = add_edge(u_global, v_global, ep, g.m_graph);
+            tie(e_global, inserted) = add_edge(u_global, v_global, ep, g.m_graph);
             put(edge_index, g.m_graph, e_global, g.m_edge_counter++);
             g.m_global_edge.push_back(e_global);
             children_add_edge(u_global, v_global, e_global, g.m_children, orig);
@@ -554,7 +552,7 @@ add_edge(typename subgraph<G>::vertex_descriptor u,
     } else {
         typename subgraph<G>::edge_descriptor e_local, e_global;
         bool inserted;
-        boost::tie(e_global, inserted) =
+        tie(e_global, inserted) =
             detail::add_edge_recur_up(g.local_to_global(u),
                                       g.local_to_global(v),
                                       ep, g, &g);

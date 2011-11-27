@@ -37,7 +37,8 @@ template<class DeviceAbstraction, bool FileBased = true>
 class managed_open_or_create_impl
 {
    //Non-copyable
-   BOOST_INTERPROCESS_MOVABLE_BUT_NOT_COPYABLE(managed_open_or_create_impl)
+   managed_open_or_create_impl(managed_open_or_create_impl &);
+   managed_open_or_create_impl &operator=(managed_open_or_create_impl &);
 
    enum
    {  
@@ -48,6 +49,8 @@ class managed_open_or_create_impl
    };
 
    public:
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(managed_open_or_create_impl)
+
    static const std::size_t
       ManagedOpenOrCreateUserOffset = 
          detail::ct_rounded_size

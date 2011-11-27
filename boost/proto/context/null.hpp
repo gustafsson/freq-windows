@@ -12,11 +12,13 @@
     #ifndef BOOST_PROTO_CONTEXT_NULL_HPP_EAN_06_24_2007
     #define BOOST_PROTO_CONTEXT_NULL_HPP_EAN_06_24_2007
 
+    #include <boost/proto/detail/prefix.hpp> // must be first include
     #include <boost/preprocessor/iteration/iterate.hpp>
     #include <boost/preprocessor/repetition/repeat.hpp>
     #include <boost/proto/proto_fwd.hpp>
     #include <boost/proto/eval.hpp>
     #include <boost/proto/traits.hpp>
+    #include <boost/proto/detail/suffix.hpp> // must be last include
 
     namespace boost { namespace proto { namespace context
     {
@@ -24,7 +26,7 @@
         template<
             typename Expr
           , typename Context
-          , long Arity          // = Expr::proto_arity_c
+          , long Arity          BOOST_PROTO_WHEN_BUILDING_DOCS(= Expr::proto_arity_c)
         >
         struct null_eval
         {};

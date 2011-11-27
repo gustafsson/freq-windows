@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// (C) Copyright Ion Gaztanaga 2004-2009. Distributed under the Boost
+// (C) Copyright Ion Gaztanaga 2004-2008. Distributed under the Boost
 // Software License, Version 1.0. (See accompanying file
 // LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
@@ -8,7 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 //
-// This file comes from SGI's stl_slist.h file. Modified by Ion Gaztanaga 2004-2009
+// This file comes from SGI's stl_slist.h file. Modified by Ion Gaztanaga 2004-2008
 // Renaming, isolating and porting to generic algorithms. Pointer typedef 
 // set to allocator::pointer to allow placing it in shared memory.
 //
@@ -50,7 +50,7 @@
 #include <boost/interprocess/containers/container/detail/config_begin.hpp>
 #include <boost/interprocess/containers/container/detail/workaround.hpp>
 
-#include <boost/interprocess/containers/container/container_fwd.hpp>
+#include <boost/interprocess/containers/container/containers_fwd.hpp>
 #include <boost/interprocess/detail/move.hpp>
 #include <boost/pointer_to_other.hpp>
 #include <boost/interprocess/containers/container/detail/utilities.hpp>
@@ -61,25 +61,23 @@
 #include <boost/intrusive/slist.hpp>
 
 
-#if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+#ifndef BOOST_CONTAINERS_PERFECT_FORWARDING
 //Preprocessor library to emulate perfect forwarding
-#else
 #include <boost/interprocess/containers/container/detail/preprocessor.hpp> 
 #endif
 
-#include <stdexcept>
 #include <iterator>
 #include <utility>
 #include <memory>
 #include <functional>
 #include <algorithm>
 
-#ifdef BOOST_CONTAINER_DOXYGEN_INVOKED
+#ifdef BOOST_INTERPROCESS_DOXYGEN_INVOKED
 namespace boost {
-namespace container {
+namespace interprocess {
 #else
 namespace boost {
-namespace container {
+namespace interprocess_container {
 #endif
 
 /// @cond
@@ -97,18 +95,7 @@ template <class T, class VoidPointer>
 struct slist_node
    :  public slist_hook<VoidPointer>::type
 {
-   #if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
-
-   slist_node()
-      : m_data()
-   {}
-
-   template<class ...Args>
-   slist_node(Args &&...args)
-      : m_data(boost::interprocess::forward<Args>(args)...)
-   {}
-
-   #else //#ifdef BOOST_CONTAINERS_PERFECT_FORWARDING
+   #ifndef BOOST_CONTAINERS_PERFECT_FORWARDING
 
    slist_node()
       : m_data()
@@ -123,7 +110,17 @@ struct slist_node
    #define BOOST_PP_LOCAL_LIMITS (1, BOOST_CONTAINERS_MAX_CONSTRUCTOR_PARAMETERS)
    #include BOOST_PP_LOCAL_ITERATE()
 
-   #endif//#ifdef BOOST_CONTAINERS_PERFECT_FORWARDING
+   #else //#ifndef BOOST_CONTAINERS_PERFECT_FORWARDING
+
+   slist_node()
+      : m_data()
+   {}
+
+   template<class ...Args>
+   slist_node(Args &&...args)
+      : m_data(boost::interprocess::forward<Args>(args)...)
+   {}
+   #endif//#ifndef BOOST_CONTAINERS_PERFECT_FORWARDING
 
    T m_data;
 };
@@ -188,8 +185,6 @@ class slist
       <A, typename containers_detail::intrusive_slist_type<A>::type>
 {
    /// @cond
-   typedef typename containers_detail::
-      move_const_ref_type<T>::type                    insert_const_ref_type;
    typedef typename 
       containers_detail::intrusive_slist_type<A>::type           Icont;
    typedef containers_detail::node_alloc_holder<A, Icont>        AllocHolder;
@@ -254,7 +249,6 @@ class slist
 
    /// @cond
    private:
-   BOOST_COPYABLE_AND_MOVABLE(slist)
    typedef difference_type                         list_difference_type;
    typedef pointer                                 list_pointer;
    typedef const_pointer                           list_const_pointer;
@@ -263,6 +257,7 @@ class slist
    /// @endcond
 
    public:
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(slist)
 
    //! Const iterator used to iterate through a list. 
    class const_iterator
@@ -416,7 +411,7 @@ class slist
    //! <b>Throws</b>: If memory allocation throws or T's copy constructor throws.
    //!
    //! <b>Complexity</b>: Linear to the number of elements in x.
-   slist& operator= (BOOST_INTERPROCESS_COPY_ASSIGN_REF(slist) x)
+   slist& operator= (const slist& x)
    {
       if (&x != this){
          this->assign(x.begin(), x.end());
@@ -628,16 +623,8 @@ class slist
    //!   T's copy constructor throws.
    //!
    //! <b>Complexity</b>: Amortized constant time.
-   void push_front(insert_const_ref_type x)
-   {  return priv_push_front(x); }
-
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   void push_front(T &x) { push_front(const_cast<const T &>(x)); }
-
-   template<class U>
-   void push_front(const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   {  return priv_push_front(u); }
-   #endif
+   void push_front(const value_type& x)
+   {  this->icont().push_front(*this->create_node(x));  }
 
    //! <b>Effects</b>: Constructs a new element in the beginning of the list
    //!   and moves the resources of t to this new element.
@@ -689,17 +676,8 @@ class slist
    //!
    //! <b>Note</b>: Does not affect the validity of iterators and references of
    //!   previous values.
-   iterator insert_after(const_iterator prev_pos, insert_const_ref_type x) 
-   {  return this->priv_insert_after(prev_pos, x); }
-
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   iterator insert_after(const_iterator position, T &x)
-   { return this->insert_after(position, const_cast<const T &>(x)); }
-
-   template<class U>
-   iterator insert_after(const_iterator position, const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   {  return this->priv_insert_after(position, u); }
-   #endif
+   iterator insert_after(const_iterator prev_pos, const value_type& x) 
+   {  return iterator(this->icont().insert_after(prev_pos.get(), *this->create_node(x))); }
 
    //! <b>Requires</b>: prev_pos must be a valid iterator of *this.
    //!
@@ -757,17 +735,8 @@ class slist
    //! <b>Throws</b>: If memory allocation throws or x's copy constructor throws.
    //!
    //! <b>Complexity</b>: Linear to the elements before p.
-   iterator insert(const_iterator position, insert_const_ref_type x) 
-   {  return this->priv_insert(position, x); }
-
-   #if !defined(BOOST_HAS_RVALUE_REFS) && !defined(BOOST_MOVE_DOXYGEN_INVOKED)
-   iterator insert(const_iterator position, T &x)
-   { return this->insert(position, const_cast<const T &>(x)); }
-
-   template<class U>
-   iterator insert(const_iterator position, const U &u, typename containers_detail::enable_if_c<containers_detail::is_same<T, U>::value && !::boost::interprocess::is_movable<U>::value >::type* =0)
-   {  return this->priv_insert(position, u); }
-   #endif
+   iterator insert(const_iterator p, const value_type& x) 
+   {  return this->insert_after(previous(p), x); }
 
    //! <b>Requires</b>: p must be a valid iterator of *this.
    //!
@@ -802,7 +771,7 @@ class slist
    void insert(const_iterator p, InIter first, InIter last) 
    {  return this->insert_after(previous(p), first, last); }
 
-   #if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_CONTAINER_DOXYGEN_INVOKED)
+   #if defined(BOOST_CONTAINERS_PERFECT_FORWARDING) || defined(BOOST_INTERPROCESS_DOXYGEN_INVOKED)
 
    //! <b>Effects</b>: Inserts an object of type T constructed with
    //!   std::forward<Args>(args)... in the front of the list
@@ -1286,14 +1255,6 @@ class slist
 
    /// @cond
    private:
-   iterator priv_insert(const_iterator p, const value_type& x) 
-   {  return this->insert_after(previous(p), x); }
-
-   iterator priv_insert_after(const_iterator prev_pos, const value_type& x) 
-   {  return iterator(this->icont().insert_after(prev_pos.get(), *this->create_node(x))); }
-
-   void priv_push_front(const value_type &x)
-   {  this->icont().push_front(*this->create_node(x));  }
 
    //Iterator range version
    template<class InpIterator>
@@ -1500,20 +1461,23 @@ inline void swap(slist<T,A>& x, slist<T,A>& y)
 /// @cond
 
 namespace boost {
-/*
+namespace interprocess {
+
 //!has_trivial_destructor_after_move<> == true_type
 //!specialization for optimizations
 template <class T, class A>
-struct has_trivial_destructor_after_move<boost::container::slist<T, A> >
+struct has_trivial_destructor_after_move<boost::interprocess_container::slist<T, A> >
 {
    static const bool value = has_trivial_destructor<A>::value;
 };
-*/
-namespace container {
+
+}  //namespace interprocess {
+
+namespace interprocess_container {
 
 /// @endcond
 
-}} //namespace boost{  namespace container {
+}} //namespace boost{  namespace interprocess_container {
 
 // Specialization of insert_iterator so that insertions will be constant
 // time rather than linear time.
@@ -1525,10 +1489,10 @@ namespace container {
 namespace std {
 
 template <class T, class A>
-class insert_iterator<boost::container::slist<T, A> > 
+class insert_iterator<boost::interprocess_container::slist<T, A> > 
 {
  protected:
-   typedef boost::container::slist<T, A> Container;
+   typedef boost::interprocess_container::slist<T, A> Container;
    Container* container;
    typename Container::iterator iter;
    public:

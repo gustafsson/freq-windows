@@ -32,16 +32,14 @@
 #endif
 
 namespace boost {
-namespace container { 
+namespace interprocess_container { 
 namespace containers_detail {
 
 template <class T1, class T2>
 struct pair
 {
-   private:
-   BOOST_COPYABLE_AND_MOVABLE(pair)
+   BOOST_INTERPROCESS_ENABLE_MOVE_EMULATION(pair)
 
-   public:
    typedef T1 first_type;
    typedef T2 second_type;
 
@@ -102,7 +100,7 @@ struct pair
    pair( BOOST_CONTAINERS_PARAM(U, u)
        #ifndef BOOST_HAS_RVALUE_REFS
        , typename containers_detail::disable_if
-          < containers_detail::is_same<U, ::boost::interprocess::rv<pair> > >::type* = 0
+          < containers_detail::is_same<U, boost::interprocess::rv<pair> > >::type* = 0
        #endif
       )
       : first(boost::interprocess::forward<U>(const_cast<U&>(u)))
@@ -119,13 +117,6 @@ struct pair
    #define BOOST_PP_LOCAL_LIMITS (1, BOOST_CONTAINERS_MAX_CONSTRUCTOR_PARAMETERS)
    #include BOOST_PP_LOCAL_ITERATE()
    #endif
-
-   pair& operator=(BOOST_INTERPROCESS_COPY_ASSIGN_REF(pair) p)
-   {
-      first  = p.first;
-      second = p.second;
-      return *this;
-   }
 
    pair& operator=(BOOST_INTERPROCESS_RV_REF(pair) p)
    {
@@ -190,8 +181,7 @@ inline void swap(pair<T1, T2>& x, pair<T1, T2>& y)
 }
 
 }  //namespace containers_detail { 
-}  //namespace container { 
-
+}  //namespace interprocess_container { 
 }  //namespace boost {
 
 #include <boost/interprocess/containers/container/detail/config_end.hpp>

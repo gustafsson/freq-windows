@@ -1,6 +1,6 @@
 //
-// ssl/detail/openssl_operation.hpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// openssl_operation.hpp
+// ~~~~~~~~~~~~~~~~~~~~~
 //
 // Copyright (c) 2005 Voipster / Indrek dot Juhani at voipster dot com
 //
@@ -15,19 +15,19 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/push_options.hpp>
+
+#include <boost/asio/detail/push_options.hpp>
 #include <boost/function.hpp>
 #include <boost/assert.hpp>
 #include <boost/bind.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/detail/socket_ops.hpp>
-#include <boost/asio/placeholders.hpp>
-#include <boost/asio/ssl/detail/openssl_types.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/system/system_error.hpp>
-#include <boost/asio/write.hpp>
+#include <boost/asio/detail/pop_options.hpp>
 
-#include <boost/asio/detail/push_options.hpp>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/placeholders.hpp>
+#include <boost/asio/write.hpp>
+#include <boost/asio/detail/socket_ops.hpp>
+#include <boost/asio/ssl/detail/openssl_types.hpp>
 
 namespace boost {
 namespace asio {
@@ -161,7 +161,7 @@ public:
 
     if (error_code == SSL_ERROR_SSL)
       return handler_(boost::system::error_code(
-            sys_error_code, boost::asio::error::get_ssl_category()), rc);
+            error_code, boost::asio::error::get_ssl_category()), rc);
 
     bool is_read_needed = (error_code == SSL_ERROR_WANT_READ);
     bool is_write_needed = (error_code == SSL_ERROR_WANT_WRITE ||
@@ -173,8 +173,7 @@ public:
       ((::SSL_get_shutdown( session_ ) & SSL_SENT_SHUTDOWN) ==
             SSL_SENT_SHUTDOWN);
 
-    if (is_shut_down_sent && is_shut_down_received
-        && is_operation_done && !is_write_needed)
+    if (is_shut_down_sent && is_shut_down_received && is_operation_done && !is_write_needed)
       // SSL connection is shut down cleanly
       return handler_(boost::system::error_code(), 1);
 
@@ -196,7 +195,7 @@ public:
       else
       {
         return handler_(boost::system::error_code(
-              sys_error_code, boost::asio::error::get_ssl_category()), rc); 
+              error_code, boost::asio::error::get_ssl_category()), rc); 
       }
     }
 

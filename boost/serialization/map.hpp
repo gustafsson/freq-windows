@@ -17,10 +17,9 @@
 
 //  See http://www.boost.org for updates, documentation, and revision history.
 
+#include <map>
 
 #include <boost/config.hpp>
-
-#include <map>
 
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/collections_save_imp.hpp>
@@ -93,7 +92,7 @@ inline void load(
     boost::serialization::stl::load_collection<
         Archive,
         std::multimap<Key, Type, Compare, Allocator>,
-        boost::serialization::stl::archive_input_map<
+        boost::serialization::stl::archive_input_multimap<
             Archive, std::multimap<Key, Type, Compare, Allocator> 
         >,
         boost::serialization::stl::no_reserve_imp<

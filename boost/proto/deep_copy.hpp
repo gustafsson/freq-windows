@@ -10,14 +10,16 @@
     #ifndef BOOST_PROTO_DEEP_COPY_HPP_EAN_11_21_2006
     #define BOOST_PROTO_DEEP_COPY_HPP_EAN_11_21_2006
 
+    #include <boost/proto/detail/prefix.hpp>
     #include <boost/preprocessor/cat.hpp>
     #include <boost/preprocessor/repetition/enum.hpp>
     #include <boost/preprocessor/iteration/iterate.hpp>
     #include <boost/mpl/if.hpp>
+    #include <boost/type_traits/is_function.hpp>
     #include <boost/type_traits/remove_reference.hpp>
     #include <boost/proto/proto_fwd.hpp>
-    #include <boost/proto/args.hpp>
     #include <boost/proto/expr.hpp>
+    #include <boost/proto/detail/suffix.hpp>
 
     namespace boost { namespace proto
     {
@@ -29,21 +31,23 @@
             template<typename Expr>
             struct deep_copy_impl<Expr, 0>
             {
+                typedef BOOST_PROTO_UNCVREF(typename Expr::proto_child0) raw_terminal_type;
+                // can't store a function type in a terminal.
                 typedef
-                    typename base_expr<
-                        typename Expr::proto_domain
-                      , tag::terminal
-                      , term<typename term_traits<typename Expr::proto_child0>::value_type>
+                    typename mpl::if_c<
+                        is_function<raw_terminal_type>::value
+                      , typename Expr::proto_child0
+                      , raw_terminal_type
                     >::type
-                expr_type;
+                actual_terminal_type;
+                typedef typename terminal<actual_terminal_type>::type expr_type;
+                typedef typename Expr::proto_domain proto_domain;
+                typedef typename proto_domain::template result<proto_domain(expr_type)>::type type;
 
-                typedef typename Expr::proto_generator proto_generator;
-                typedef typename proto_generator::template result<proto_generator(expr_type)>::type result_type;
-
-                template<typename Expr2, typename S, typename D>
-                result_type operator()(Expr2 const &e, S const &, D const &) const
+                template<typename Expr2>
+                static type call(Expr2 const &expr)
                 {
-                    return proto_generator()(expr_type::make(e.proto_base().child0));
+                    return typename Expr::proto_domain()(expr_type::make(expr.proto_base().child0));
                 }
             };
         }
@@ -64,7 +68,7 @@
                 typedef
                     typename detail::deep_copy_impl<
                         BOOST_PROTO_UNCVREF(Expr)
-                    >::result_type
+                    >::type
                 type;
             };
         }
@@ -94,9 +98,7 @@
                 struct result<This(Expr)>
                 {
                     typedef
-                        typename detail::deep_copy_impl<
-                            BOOST_PROTO_UNCVREF(Expr)
-                        >::result_type
+                        typename result_of::deep_copy<Expr>::type
                     type;
                 };
 
@@ -105,9 +107,9 @@
                 /// value.
                 template<typename Expr>
                 typename result_of::deep_copy<Expr>::type
-                operator()(Expr const &e) const
+                operator()(Expr const &expr) const
                 {
-                    return proto::detail::deep_copy_impl<Expr>()(e, 0, 0);
+                    return proto::detail::deep_copy_impl<Expr>::call(expr);
                 }
             };
         }
@@ -120,50 +122,29 @@
         /// all internal nodes and most terminals held by reference
         /// are instead held by value.
         ///
-        /// \attention Terminals of reference-to-function type are
-        /// left unchanged.
+        /// \attention Terminals of reference-to-array type and of
+        /// reference-to-function type are left unchanged.
         ///
         /// \sa proto::functional::deep_copy.
         template<typename Expr>
         typename proto::result_of::deep_copy<Expr>::type
-        deep_copy(Expr const &e)
+        deep_copy(Expr const &expr)
         {
-            return proto::detail::deep_copy_impl<Expr>()(e, 0, 0);
+            return proto::detail::deep_copy_impl<Expr>::call(expr);
         }
-
-        /// \brief A PrimitiveTransform for deep-copying
-        /// Proto expression trees.
-        ///
-        /// A PrimitiveTransform for deep-copying
-        /// Proto expression trees. When a tree is deep-copied,
-        /// all internal nodes and most terminals held by reference
-        /// are instead held by value.
-        ///
-        /// \attention Terminals of reference-to-function type are
-        /// left unchanged.
-        ///
-        /// \sa proto::functional::deep_copy.
-        struct _deep_copy
-          : proto::transform<_deep_copy>
-        {
-            template<typename E, typename S, typename D>
-            struct impl
-              : detail::deep_copy_impl<BOOST_PROTO_UNCVREF(E)>
-            {};
-        };
 
         namespace detail
         {
         #define BOOST_PROTO_DEFINE_DEEP_COPY_TYPE(Z, N, DATA)                                       \
             typename deep_copy_impl<                                                                \
                 typename remove_reference<                                                          \
-                    typename Expr::BOOST_PP_CAT(proto_child, N)                                     \
+                  typename Expr::BOOST_PP_CAT(proto_child, N)                                       \
                 >::type::proto_derived_expr                                                         \
-            >::result_type                                                                          \
+            >::type                                                                                 \
             /**/
 
         #define BOOST_PROTO_DEFINE_DEEP_COPY_FUN(Z, N, DATA)                                        \
-            proto::deep_copy(e.proto_base().BOOST_PP_CAT(child, N))                                 \
+            proto::deep_copy(expr.proto_base().BOOST_PP_CAT(child, N))                              \
             /**/
 
         #define BOOST_PP_ITERATION_PARAMS_1 (3, (1, BOOST_PROTO_MAX_ARITY, <boost/proto/deep_copy.hpp>))
@@ -185,26 +166,26 @@
             struct deep_copy_impl<Expr, N>
             {
                 typedef
-                    typename base_expr<
-                        typename Expr::proto_domain
-                      , typename Expr::proto_tag
+                    proto::expr<
+                        typename Expr::proto_tag
                       , BOOST_PP_CAT(list, N)<
                             BOOST_PP_ENUM(N, BOOST_PROTO_DEFINE_DEEP_COPY_TYPE, ~)
                         >
-                    >::type
+                      , N
+                    >
                 expr_type;
 
-                typedef typename Expr::proto_generator proto_generator;
-                typedef typename proto_generator::template result<proto_generator(expr_type)>::type result_type;
+                typedef typename Expr::proto_domain proto_domain;
+                typedef typename proto_domain::template result<proto_domain(expr_type)>::type type;
 
-                template<typename Expr2, typename S, typename D>
-                result_type operator()(Expr2 const &e, S const &, D const &) const
+                template<typename Expr2>
+                static type call(Expr2 const &expr)
                 {
-                    expr_type const that = {
+                    expr_type that = {
                         BOOST_PP_ENUM(N, BOOST_PROTO_DEFINE_DEEP_COPY_FUN, ~)
                     };
 
-                    return proto_generator()(that);
+                    return typename Expr::proto_domain()(that);
                 }
             };
 
